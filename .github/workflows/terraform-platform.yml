@@ -148,7 +148,7 @@ jobs:
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
 
-      - name: Terraform Init For Backend Layer
+      - name: Terraform Init For Backend Layer initially
         if: github.event.inputs.layer == '00-backend'
         run: terraform init
 
@@ -156,7 +156,7 @@ jobs:
         if: github.event.inputs.layer != '00-backend'
         run: terraform init -backend-config="backend.hcl"
 
-      - name: Terraform Validate
+      - name: Terraform Validate code
         run: terraform validate
 
       - name: Terraform Plan
