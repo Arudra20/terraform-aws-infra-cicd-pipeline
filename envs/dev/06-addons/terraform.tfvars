@@ -1,6 +1,6 @@
-aws_region   = "ap-south-1" # AWS region where resources will be created.
-project_name = "eks-platform" # Change this for each new project; used in naming/tags.
-environment  = "dev" # Current environment name; keeps names and state paths isolated.
+aws_region   = "ap-south-1"          # AWS region where resources will be created.
+project_name = "eks-platform"        # Change this for each new project; used in naming/tags.
+environment  = "dev"                 # Current environment name; keeps names and state paths isolated.
 state_bucket = "__TF_STATE_BUCKET__" # Replace after running 00-backend.
 
 enable_metrics_server        = true # Required for kubectl top and HPA CPU/memory metrics.
@@ -16,4 +16,4 @@ enable_external_secrets        = true # Syncs AWS Secrets Manager values into Ku
 external_secrets_chart_version = null # Pin version for predictable releases.
 
 enable_monitoring_stack             = false # Set true to install Prometheus/Grafana stack.
-kube_prometheus_stack_chart_version = null # Pin version if monitoring stack is enabled.
+kube_prometheus_stack_chart_version = null  # Pin version if monitoring stack is enabled.

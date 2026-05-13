@@ -22,6 +22,6 @@ module "eks_addons" {
   external_secrets_chart_version = var.external_secrets_chart_version
   external_secrets_role_arn      = data.terraform_remote_state.irsa.outputs.external_secrets_role_arn
 
-  enable_monitoring_stack              = var.enable_monitoring_stack
-  kube_prometheus_stack_chart_version  = var.kube_prometheus_stack_chart_version
+  enable_monitoring_stack             = var.enable_monitoring_stack
+  kube_prometheus_stack_chart_version = var.kube_prometheus_stack_chart_version
 }

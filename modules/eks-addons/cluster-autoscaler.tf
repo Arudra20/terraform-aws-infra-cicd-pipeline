@@ -26,8 +26,8 @@ resource "helm_release" "cluster_autoscaler" {
       }
 
       extraArgs = {
-        "balance-similar-node-groups"  = "true"
-        "skip-nodes-with-system-pods"  = "false"
+        "balance-similar-node-groups"   = "true"
+        "skip-nodes-with-system-pods"   = "false"
         "skip-nodes-with-local-storage" = "false"
       }
 

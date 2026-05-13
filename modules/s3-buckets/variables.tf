@@ -11,10 +11,10 @@ variable "environment" {
 variable "buckets" {
   description = "Application S3 buckets to create."
   type = map(object({
-    purpose             = string
-    versioning_enabled  = bool
-    force_destroy       = bool
-    retention_days      = number
+    purpose            = string
+    versioning_enabled = bool
+    force_destroy      = bool
+    retention_days     = number
   }))
 }
 

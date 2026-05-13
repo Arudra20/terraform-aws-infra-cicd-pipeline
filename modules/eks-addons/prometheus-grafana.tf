@@ -10,7 +10,7 @@ resource "helm_release" "kube_prometheus_stack" {
   values = [
     yamlencode({
       grafana = {
-        enabled = true
+        enabled       = true
         adminPassword = "change-me-after-install"
       }
 
