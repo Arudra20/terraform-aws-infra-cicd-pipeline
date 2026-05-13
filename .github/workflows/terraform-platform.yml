@@ -10,12 +10,12 @@ on:
       - "modules/**"
       - ".github/workflows/terraform-platform.yml"
 
-#   push:
-#     branches:
-#       - main
-#     paths:
-#       - "envs/**"
-#       - "modules/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "envs/**"
+      - "modules/**"
 
   workflow_dispatch:
     inputs:
@@ -82,6 +82,7 @@ jobs:
         environment:
           - dev
         layer:
+          - 00-backend
           - 01-network
           - 02-registry
           - 03-cluster
