@@ -1,0 +1,198 @@
+name: Terraform EKS Platform
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "envs/**"
+      - "modules/**"
+      - ".github/workflows/terraform-platform.yml"
+
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - "envs/**"
+#       - "modules/**"
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        type: choice
+        options:
+          - dev
+          - stage
+          - prod
+
+      layer:
+        description: "Terraform layer to run"
+        required: true
+        type: choice
+        options:
+          - 00-backend
+          - 01-network
+          - 02-registry
+          - 03-cluster
+          - 04-node-groups
+          - 05-irsa
+          - 06-addons
+          - 07-apps
+
+      action:
+        description: "Terraform action"
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+      tfvars_file:
+        description: "tfvars file name inside selected layer"
+        required: true
+        default: "terraform.tfvars"
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: terraform-${{ github.event.inputs.environment || 'pr' }}-${{ github.event.inputs.layer || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+  AWS_REGION: "ap-south-1"
+
+jobs:
+  pr-validate:
+    name: PR Terraform Validate
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - dev
+        layer:
+          - 01-network
+          - 02-registry
+          - 03-cluster
+          - 04-node-groups
+          - 05-irsa
+          - 06-addons
+          - 07-apps
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: envs/${{ matrix.environment }}/${{ matrix.layer }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.3
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init Without Backend
+        run: terraform init -backend=false
+
+      - name: Terraform Validate
+        run: terraform validate
+
+  terraform:
+    name: Terraform ${{ github.event.inputs.action }} - ${{ github.event.inputs.environment }} - ${{ github.event.inputs.layer }}
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    environment: ${{ github.event.inputs.environment }}
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: envs/${{ github.event.inputs.environment }}/${{ github.event.inputs.layer }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.3
+
+      - name: Configure AWS Credentials Using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || env.AWS_REGION }}
+          role-session-name: github-actions-terraform-${{ github.run_id }}
+
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init For Backend Layer
+        if: github.event.inputs.layer == '00-backend'
+        run: terraform init
+
+      - name: Terraform Init For Remote Backend Layers
+        if: github.event.inputs.layer != '00-backend'
+        run: terraform init -backend-config="backend.hcl"
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        if: github.event.inputs.action == 'plan' || github.event.inputs.action == 'apply'
+        run: |
+          terraform plan \
+            -var-file="${{ github.event.inputs.tfvars_file }}" \
+            -out="tfplan"
+
+      - name: Upload Terraform Plan
+        if: github.event.inputs.action == 'plan' || github.event.inputs.action == 'apply'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ github.event.inputs.environment }}-${{ github.event.inputs.layer }}
+          path: envs/${{ github.event.inputs.environment }}/${{ github.event.inputs.layer }}/tfplan
+          retention-days: 5
+
+      - name: Terraform Apply
+        if: github.event.inputs.action == 'apply'
+        run: terraform apply -auto-approve "tfplan"
+
+      - name: Terraform Destroy Plan
+        if: github.event.inputs.action == 'destroy'
+        run: |
+          terraform plan \
+            -destroy \
+            -var-file="${{ github.event.inputs.tfvars_file }}" \
+            -out="destroy.tfplan"
+
+      - name: Upload Destroy Plan
+        if: github.event.inputs.action == 'destroy'
+        uses: actions/upload-artifact@v4
+        with:
+          name: destroy-plan-${{ github.event.inputs.environment }}-${{ github.event.inputs.layer }}
+          path: envs/${{ github.event.inputs.environment }}/${{ github.event.inputs.layer }}/destroy.tfplan
+          retention-days: 5
+
+      - name: Terraform Destroy
+        if: github.event.inputs.action == 'destroy'
+        run: terraform apply -auto-approve "destroy.tfplan"

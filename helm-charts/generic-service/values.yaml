@@ -1,0 +1,16 @@
+replicaCount: 2
+
+image:
+  repository: nginx
+  tag: latest
+
+container:
+  port: 8080
+
+service:
+  port: 80
+
+serviceAccount:
+  create: true
+  name: app-sa
+  annotations: {}

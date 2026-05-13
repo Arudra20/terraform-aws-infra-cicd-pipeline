@@ -1,0 +1,10 @@
+Write-Host "Terraform EKS Platform Flow" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "00-backend      -> Create S3 backend"
+Write-Host "01-network      -> Create VPC, subnets, routes, NAT, endpoints"
+Write-Host "02-registry     -> Create ECR repositories"
+Write-Host "03-cluster      -> Create EKS control plane and managed add-ons"
+Write-Host "04-node-groups  -> Create EKS worker nodes"
+Write-Host "05-irsa         -> Create IAM roles for Kubernetes service accounts"
+Write-Host "06-addons       -> Install Metrics Server, Cluster Autoscaler, ALB Controller, monitoring"
+Write-Host "07-apps         -> Deploy application Helm charts"
