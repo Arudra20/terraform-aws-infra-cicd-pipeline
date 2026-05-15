@@ -1,6 +1,6 @@
-aws_region   = "ap-south-1"          # AWS region where resources will be created.
-project_name = "eks-platform" # Change this for each new project; used in naming/tags.
-environment  = "prod"                # Current environment name; keeps names and state paths isolated.
+aws_region   = "ap-south-1"        # AWS region where resources will be created.
+project_name = "eks-platform"      # Change this for each new project; used in naming/tags.
+environment  = "prod"              # Current environment name; keeps names and state paths isolated.
 state_bucket = "eks-platform-prod" # Replace after running 00-backend.
 
 vpc_cidr = "10.60.0.0/16" # Main VPC CIDR range for this environment.
