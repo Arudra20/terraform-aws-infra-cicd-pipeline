@@ -1,7 +1,7 @@
 aws_region   = "ap-south-1"          # AWS region where resources will be created.
-project_name = "sample-eks-platform" # Change this for each new project; used in naming/tags.
+project_name = "eks-platform" # Change this for each new project; used in naming/tags.
 environment  = "prod"                # Current environment name; keeps names and state paths isolated.
-state_bucket = "__TF_STATE_BUCKET__" # Replace after running 00-backend.
+state_bucket = "eks-platform-prod" # Replace after running 00-backend.
 
 repositories = {
   user-service = {
